@@ -49,7 +49,8 @@ public:
     cube->MovePivot(Vector(0.5, 0.5, 0.5));
     entities.push_back(cube);
 
-    ship = new Object(LoadMesh("VideoShip.obj"), Vector(-8.0, 0.0, 9.0));
+//    ship = new Object(LoadMesh("VideoShip.obj"), Vector(-8.0, 0.0, 9.0));
+    ship = new Object(LoadMesh("example_ship.obj"), Vector(-8.0, 0.0, 9.0));
     ship->MovePivot(Vector(0.0, 0.0, 1.0));
     entities.push_back(ship);
 
