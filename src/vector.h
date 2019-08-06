@@ -17,8 +17,8 @@ struct Vector {
 
   Vector operator*(const double);
   void operator*=(const double);
-  void operator*=(const Matrix&);
   Vector operator*(const Matrix&);
+  void operator*=(const Matrix&);
   Vector operator/(const double);
   void operator/=(const double);
   Vector operator+(const Vector&);
