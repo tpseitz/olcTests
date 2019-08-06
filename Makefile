@@ -32,6 +32,10 @@ engine: $(DIRECTORIES) $(ENGINE_OBJ)
 	$(CXX) $(SOURCE)/$@.cpp -o $@.o $(CPPFLAGS)
 	$(CXX) $(ENGINE_OBJ) $@.o -o $(TARGET)/$@ $(LDFLAGS)
 
+wolf: $(DIRECTORIES) $(PGE_OBJ)
+	$(CXX) $(SOURCE)/$@.cpp -o $@.o $(CPPFLAGS)
+	$(CXX) $(PGE_OBJ) $@.o -o $(TARGET)/$@ $(LDFLAGS)
+
 %.o: $(SOURCE)/%.cpp $(DIRECTORIES)
 	$(CXX) $< -o $@ $(CPPFLAGS)
 
