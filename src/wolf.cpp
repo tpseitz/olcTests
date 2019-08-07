@@ -26,13 +26,13 @@ uint8_t cMap[] =
 class WolfTest : public olc::PixelGameEngine {
 private:
   bool bRunning = false;
-  float fMaxDistance = 16.0;
-  float fPlayerX = 4.0, fPlayerY = 4.0, fPlayerAngle = 3.14159;
+  float fMaxDistance = 24.0;
+  float fPlayerX = 4.0, fPlayerY = 4.0, fPlayerAngle = 3.141592653589793;
   float fPlayerSpeed = 1.0;
   float fRaySpeed = 1.0 / (float)HEIGHT * 5.0;
-  float fFOV = 3.14159 / 4.5;
+  float fFOV = 0.6981317007977318;
   olc::Pixel COLOR_WALL = 0xffffffff;
-  olc::Pixel COLOR_FLOOR = 0xff800000;
+  olc::Pixel COLOR_FLOOR = 0xff7f0000;
   olc::Sprite *tWall[WALL_TEXTURES] = { NULL };
   float fZBuffer[WIDTH];
 
@@ -45,9 +45,16 @@ public:
     for (int i = 0; i < iMapWidth * iMapHeight; i++)
       if (cMap[i] == '.') cMap[i] = 192;
 
-    tWall[1] = new olc::Sprite("gfx/wall.png");
+    tWall[0] = NULL;
+    tWall[1] = new olc::Sprite("gfx/wall_01.png");
 
     bRunning = true;
+    return true;
+  }
+
+  bool OnUserDestroy() {
+    for (olc::Sprite* pt: tWall) delete pt;
+
     return true;
   }
 
@@ -64,16 +71,16 @@ public:
     float fPlayerLeft = fPlayerAngle - 1.57079;
     float fPrevX = fPlayerX, fPrevY = fPlayerY;
     if (GetKey(olc::Key::A).bHeld) {
-      fPlayerX += sin(fPlayerLeft) * fElapsedTime * fPlayerSpeed;
+      fPlayerX += -sin(fPlayerLeft) * fElapsedTime * fPlayerSpeed;
       fPlayerY += cos(fPlayerLeft) * fElapsedTime * fPlayerSpeed;
     } if (GetKey(olc::Key::D).bHeld) {
-      fPlayerX -= sin(fPlayerLeft) * fElapsedTime * fPlayerSpeed;
+      fPlayerX -= -sin(fPlayerLeft) * fElapsedTime * fPlayerSpeed;
       fPlayerY -= cos(fPlayerLeft) * fElapsedTime * fPlayerSpeed;
     } if (GetKey(olc::Key::UP).bHeld or GetKey(olc::Key::W).bHeld) {
-      fPlayerX += sin(fPlayerAngle) * fElapsedTime * fPlayerSpeed;
+      fPlayerX += -sin(fPlayerAngle) * fElapsedTime * fPlayerSpeed;
       fPlayerY += cos(fPlayerAngle) * fElapsedTime * fPlayerSpeed;
     } if (GetKey(olc::Key::DOWN).bHeld or GetKey(olc::Key::S).bHeld) {
-      fPlayerX -= sin(fPlayerAngle) * fElapsedTime * fPlayerSpeed;
+      fPlayerX -= -sin(fPlayerAngle) * fElapsedTime * fPlayerSpeed;
       fPlayerY -= cos(fPlayerAngle) * fElapsedTime * fPlayerSpeed;
     } if (GetKey(olc::Key::LEFT).bHeld) {
       fPlayerAngle -= fElapsedTime;
@@ -111,7 +118,7 @@ public:
     double tmp;
     float fMiddleY = iMiddleY;
     for (int x = 0; x < WIDTH; x++) {
-      sx = sin(ang) * fRaySpeed;
+      sx = -sin(ang) * fRaySpeed;
       sy = cos(ang) * fRaySpeed;
       ang += aa;
       px = fPlayerX + sx * 2.0;
