@@ -1,28 +1,39 @@
 #include "olcPixelGameEngine.h"
 
 const int WIDTH = 200, HEIGHT = 150, PIXEL_SIZE = 4;
+//const int WIDTH = 400, HEIGHT = 300, PIXEL_SIZE = 2;
 //const int WIDTH = 800, HEIGHT = 600, PIXEL_SIZE = 1;
-const int iMapWidth = 8, iMapHeight = 8;
-const uint8_t cMap[] =
-  "\x05\x05\x05\x05\x05\x05\x05\x05"
-  "\x05\xff\xff\xff\xff\xff\xff\x05"
-  "\x05\xff\x05\xff\xff\xff\xff\x05"
-  "\x05\xff\x05\xff\xff\xff\xff\x05"
-  "\x05\xff\x05\xff\xff\xff\xff\x05"
-  "\x05\xff\x05\xff\xff\xff\x05\x05"
-  "\x05\xff\xff\xff\xff\xff\xff\x05"
-  "\x05\x05\x05\x05\x05\x05\x05\x05";
+const int WALL_TEXTURES = 128;
+const int iMapWidth = 16, iMapHeight = 16;
+uint8_t cMap[] =
+  "HHHHHHHHHHHHHHHH"
+  "H....I.........H"
+  "H....I.........H"
+  "H....IIIII.....H"
+  "H....I.........H"
+  "HI.III.........H"
+  "H..............H"
+  "H..............H"
+  "H.....III.III..H"
+  "H.....I.....I..H"
+  "H.....I.....I..H"
+  "H.....I.....I..H"
+  "H.....III.III..H"
+  "H..............H"
+  "H..............H"
+  "HHHHHHHHHHHHHHHH";
 
 class WolfTest : public olc::PixelGameEngine {
 private:
   bool bRunning = false;
   float fMaxDistance = 16.0;
-  float fPlayerX = 4.0, fPlayerY = 4.0, fPlayerAngle = 2.0;
+  float fPlayerX = 4.0, fPlayerY = 4.0, fPlayerAngle = 3.14159;
   float fPlayerSpeed = 1.0;
   float fRaySpeed = 1.0 / (float)HEIGHT * 5.0;
   float fFOV = 3.14159 / 4.5;
   olc::Pixel COLOR_WALL = 0xffffffff;
   olc::Pixel COLOR_FLOOR = 0xff800000;
+  olc::Sprite *tWall[WALL_TEXTURES] = { NULL };
   float fZBuffer[WIDTH];
 
 public:
@@ -31,13 +42,19 @@ public:
   }
 
   bool OnUserCreate() override {
+    for (int i = 0; i < iMapWidth * iMapHeight; i++)
+      if (cMap[i] == '.') cMap[i] = 192;
+
+    tWall[1] = new olc::Sprite("gfx/wall.png");
+
     bRunning = true;
     return true;
   }
 
   void drawMap() {
     for (int x = 0, y = 0; y < iMapHeight; ) {
-      if (cMap[x + y * iMapHeight] < 128) Draw(x, y, olc::Pixel(0xffff0000));
+      if (cMap[x + y * iMapHeight] < WALL_TEXTURES)
+        Draw(x, y, olc::Pixel(0xffff0000));
       if (++x >= iMapWidth) { x = 0; y++; }
     }
     Draw((int)fPlayerX, (int)fPlayerY, olc::Pixel(0xff0000ff));
@@ -71,7 +88,7 @@ public:
     if (fPlayerY >= iMapHeight) fPlayerY = iMapHeight - 1;
 */
 
-    if (cMap[(int)fPlayerX + (int)fPlayerY * iMapWidth] < 128) {
+    if (cMap[(int)fPlayerX + (int)fPlayerY * iMapWidth] < WALL_TEXTURES) {
       fPlayerX = fPrevX; fPlayerY = fPrevY;
     }
 
@@ -87,9 +104,11 @@ public:
     }
 
     olc::Pixel cWall;
-    int iMiddleY = ScreenHeight() / 2, dh;
+    int iMiddleY = ScreenHeight() / 2, dh, bi;
+    uint16_t block;
     float ang = fPlayerAngle - fFOV / 2.0, aa = fFOV / (float)ScreenWidth();
     float px, py, sx, sy, dist;
+    double tmp;
     float fMiddleY = iMiddleY;
     for (int x = 0; x < WIDTH; x++) {
       sx = sin(ang) * fRaySpeed;
@@ -97,18 +116,34 @@ public:
       ang += aa;
       px = fPlayerX + sx * 2.0;
       py = fPlayerY + sy * 2.0;
+      block = 0;
       for (dist = fRaySpeed; dist < fMaxDistance; dist += fRaySpeed) {
         if (px < 0 or py < 0 or px >= iMapWidth or py >= iMapHeight) break;
-        if (cMap[(int)px + (int)py * iMapWidth] < 128) break;
+        bi = (int)px + (int)py * iMapWidth;
+        if (cMap[bi] < WALL_TEXTURES) { block = cMap[bi]; break; }
         px += sx; py += sy;
       }
       fZBuffer[x] = dist;
       dh = (1.5 / dist) * fMiddleY;
-      if (dh > fMiddleY) dh = fMiddleY;
+      float v = 0.0, inc = 1.0 / (float)(dh * 2);
+      float ux = modf(px, &tmp), uy = modf(py, &tmp), u;
+      if (std::abs(ux - 0.5) > std::abs(uy - 0.5)) u = uy;
+      else u = ux;
+      if (dh > fMiddleY) { v += inc * (float)(dh - fMiddleY); dh = fMiddleY; }
       colMul = 1.0 - dist / fMaxDistance;
-      cWall = COLOR_WALL;
-      cWall.r *= colMul; cWall.g *= colMul; cWall.b *= colMul;
-      DrawLine(x, iMiddleY - dh, x, iMiddleY + dh, cWall);
+      block = 1;
+      if (tWall[block] != NULL) {
+        for (int y = iMiddleY - dh; y <= iMiddleY + dh; y++) {
+          cWall = tWall[block]->Sample(u, v);
+          v += inc;
+          cWall.r *= colMul; cWall.g *= colMul; cWall.b *= colMul;
+          DrawLine(x, y, x, y, cWall);
+        }
+      } else {
+        cWall = COLOR_WALL;
+        cWall.r *= colMul; cWall.g *= colMul; cWall.b *= colMul;
+        DrawLine(x, iMiddleY - dh, x, iMiddleY + dh, cWall);
+      }
     }
 
     drawMap();
