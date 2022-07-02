@@ -2,9 +2,9 @@ CXX = g++
 RM = rm -f
 MKDIR = mkdir -p
 RMDIR = rmdir -p
-CPPFLAGS = -g -c -std=c++14
+CPPFLAGS = -g -c -std=c++17
 LDFLAGS = -g -pthread -lGL -lX11 -lpng
-DCFLAGS = -g -std=c++14 -pthread -lGL -lX11 -lpng
+DCFLAGS = -g -std=c++17 -pthread -lGL -lX11 -lpng
 
 PGE_OBJ = pge.o
 VECTOR_OBJ = vector.o
