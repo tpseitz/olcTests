@@ -14,7 +14,7 @@ SOURCE = src
 TARGET = bin
 DIRECTORIES = $(TARGET)
 
-all: gol fire lightning maze engine
+all: gol fire fireworks lightning maze engine
 
 maze: $(DIRECTORIES) $(PGE_OBJ) $(NETWORK_OBJ)
 	$(CXX) $(SOURCE)/$@.cpp -o $@.o $(CPPFLAGS)
@@ -24,7 +24,7 @@ gol: $(DIRECTORIES) $(PGE_OBJ)
 	$(CXX) $(SOURCE)/$@.cpp -o $@.o $(CPPFLAGS)
 	$(CXX) $(PGE_OBJ) $@.o -o $(TARGET)/$@ $(LDFLAGS)
 
-fire lightning: $(PGE_OBJ) $(VECTOR_OBJ)
+fire lightning fireworks: $(PGE_OBJ) $(VECTOR_OBJ)
 	$(CXX) $(SOURCE)/$@.cpp -o $@.o $(CPPFLAGS)
 	$(CXX) $(PGE_OBJ) $(VECTOR_OBJ) $@.o -o $(TARGET)/$@ $(LDFLAGS)
 
